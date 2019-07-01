@@ -25,7 +25,7 @@ def test_init_app():
     # (1)
     with pytest.raises(errors.ConfigurationError) as ex:
         beaker_session.Session(app=Mock())
-    assert 'Invalid Flask' in str(ex)
+    assert 'Invalid Flask' in str(ex.value)
 
     # (2)
     app = Flask(__name__)
