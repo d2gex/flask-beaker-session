@@ -1,15 +1,18 @@
 import pytest
 
 from flask import Flask
+from flask.sessions import SecureCookieSessionInterface
+from beaker.middleware import SessionMiddleware
+from flask_beaker_session import config, session, errors, beaker_session
 from unittest.mock import Mock
-from flask_beaker_session import config, session, errors
 
 
 def test_init_app():
     '''Ensure init_app work as follows:
 
     1) if the passed app is not a Flask instance => raise a ConfigurationError exception
-    2) if SESSION_TYPE conf option not provided => raise a ConfigurationError exception
+    2) app.wsgi_app should be of beaker.middleware.SessionMiddleware type after initialisation
+    3) SESSION_TYPE, SESSION_EXPIRES and SESSION_DATA_DIR should be provided as default value if not present in config
     '''
 
     # (1)
@@ -19,12 +22,14 @@ def test_init_app():
 
     # (2)
     app = Flask(__name__)
-    with pytest.raises(errors.ConfigurationError) as ex:
-        session.Session(app=app)
-    assert "'SESSION_TYPE'" in str(ex)
+    assert not isinstance(app.wsgi_app, SessionMiddleware)
+    assert isinstance(app.session_interface, SecureCookieSessionInterface)
+    session.Session(app=app)
+    assert isinstance(app.wsgi_app, SessionMiddleware)
+    assert isinstance(app.session_interface, beaker_session.BeakerSessionInterface)
 
     # (3)
-    app.config.from_mapping(SESSION_TYPE=config.SESSION_TYPE)
-    with pytest.raises(errors.ConfigurationError) as ex:
-        session.Session(app=app)
-    assert "'SESSION_EXPIRES'" in str(ex)
+    session_options = app.wsgi_app.options
+    assert session_options['type'] == config.SESSION_TYPE
+    assert session_options['cookie_expires'] == config.SESSION_EXPIRES
+    assert session_options['data_dir'] == config.SESSION_DATA_DIR
