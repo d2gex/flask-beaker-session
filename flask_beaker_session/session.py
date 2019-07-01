@@ -17,7 +17,8 @@ class Session:
         session_opts = {
             'session.type': app.config.get('SESSION_TYPE', config.SESSION_TYPE),
             'session.cookie_expires': app.config.get('SESSION_EXPIRES', config.SESSION_EXPIRES),
-            'session.data_dir': app.config.get('SESSION_DATA_DIR', config.SESSION_DATA_DIR)
+            'session.data_dir': app.config.get('SESSION_DATA_DIR', config.SESSION_DATA_DIR),
+            'session.timeout': app.config.get('SESSION_TIMEOUT', config.SESSION_TIMEOUT)
         }
         # TO-DO: Integrate other backend session storage such redis, memcache and db-based
 

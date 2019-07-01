@@ -1,6 +1,6 @@
 import pytest
 
-from os import path, listdir
+from os import path
 from flask import Flask, session, jsonify
 from flask.sessions import SecureCookieSessionInterface
 from beaker.middleware import SessionMiddleware
@@ -39,6 +39,7 @@ def test_init_app():
     assert session_options['type'] == config.SESSION_TYPE
     assert session_options['cookie_expires'] == config.SESSION_EXPIRES
     assert session_options['data_dir'] == config.SESSION_DATA_DIR
+    assert session_options['timeout'] == config.SESSION_TIMEOUT
 
 
 def test_factory_class_config_patterns():
