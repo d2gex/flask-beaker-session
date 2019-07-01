@@ -3,7 +3,7 @@ import pytest
 from flask import Flask
 from flask.sessions import SecureCookieSessionInterface
 from beaker.middleware import SessionMiddleware
-from flask_beaker_session import config, session, errors, beaker_session
+from flask_beaker_session import config, session as beaker_session, errors, session_interface
 from unittest.mock import Mock
 
 
@@ -17,16 +17,16 @@ def test_init_app():
 
     # (1)
     with pytest.raises(errors.ConfigurationError) as ex:
-        session.Session(app=Mock())
+        beaker_session.Session(app=Mock())
     assert 'Invalid Flask' in str(ex)
 
     # (2)
     app = Flask(__name__)
     assert not isinstance(app.wsgi_app, SessionMiddleware)
     assert isinstance(app.session_interface, SecureCookieSessionInterface)
-    session.Session(app=app)
+    beaker_session.Session(app=app)
     assert isinstance(app.wsgi_app, SessionMiddleware)
-    assert isinstance(app.session_interface, beaker_session.BeakerSessionInterface)
+    assert isinstance(app.session_interface, session_interface.BeakerSessionInterface)
 
     # (3)
     session_options = app.wsgi_app.options
@@ -36,7 +36,7 @@ def test_init_app():
 
 
 def test_factory_class_config_patterns():
-    '''Test that Application factory pattern and Class-Inheritance configuration pattern works as expected
+    '''Application factory pattern and Class-Inheritance configuration pattern should work as expected
     '''
 
     class Config:
@@ -44,7 +44,7 @@ def test_factory_class_config_patterns():
         SESSION_EXPIRES = False
         SESSION_DATA_DIR = 'another_folder'
 
-    session_ext = session.Session()
+    session_ext = beaker_session.Session()
 
     def create_app(config_class=Config):
         app = Flask(__name__)
@@ -55,11 +55,9 @@ def test_factory_class_config_patterns():
     _app = create_app()
 
     assert isinstance(_app.wsgi_app, SessionMiddleware)
-    assert isinstance(_app.session_interface, beaker_session.BeakerSessionInterface)
+    assert isinstance(_app.session_interface, session_interface.BeakerSessionInterface)
 
     session_options = _app.wsgi_app.options
     assert session_options['type'] == Config.SESSION_TYPE
     assert session_options['cookie_expires'] == Config.SESSION_EXPIRES
     assert session_options['data_dir'] == Config.SESSION_DATA_DIR
-
-
