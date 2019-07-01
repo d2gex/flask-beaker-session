@@ -8,6 +8,11 @@ from flask_beaker_session import config, session as beaker_session, errors, sess
 from unittest.mock import Mock
 
 
+@pytest.fixture()
+def data_dir(tmp_path):
+    return tmp_path / "tmp" / ".sessions"
+
+
 def test_init_app():
     '''Ensure init_app work as follows:
 
@@ -64,18 +69,18 @@ def test_factory_class_config_patterns():
     assert session_options['data_dir'] == Config.SESSION_DATA_DIR
 
 
-def test_filesystem_session(tmp_path):
+def test_filesystem_session(data_dir):
     '''Test Filesystem-stored sessions as follows;
 
     1) When a session variable is persisted => a file is created and cookie is stuck in the headers
     2) Popping an individual variable from session dict will remove it from the session
     3) session.delete() will delete all session variables
     '''
-    d = tmp_path / "tmp"
-    assert not path.exists(d / ".sessions")
+
+    assert not path.exists(data_dir)
 
     class Config:
-        SESSION_DATA_DIR = d / '.sessions'
+        SESSION_DATA_DIR = data_dir
 
     app = Flask(__name__)
     app.config.from_object(Config)
@@ -110,7 +115,7 @@ def test_filesystem_session(tmp_path):
 
     # (1)
     response = test_app.get('/create')
-    assert path.exists(d / ".sessions")
+    assert path.exists(data_dir)
     assert response.status_code == 200
     try:
         session_id = response.headers['Set-cookie']
