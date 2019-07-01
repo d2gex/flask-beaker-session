@@ -1,0 +1,2 @@
+SESSION_TYPE = 'file'
+SESSION_EXPIRES = True
