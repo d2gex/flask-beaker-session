@@ -33,3 +33,33 @@ def test_init_app():
     assert session_options['type'] == config.SESSION_TYPE
     assert session_options['cookie_expires'] == config.SESSION_EXPIRES
     assert session_options['data_dir'] == config.SESSION_DATA_DIR
+
+
+def test_factory_class_config_patterns():
+    '''Test that Application factory pattern and Class-Inheritance configuration pattern works as expected
+    '''
+
+    class Config:
+        SESSION_TYPE = 'redis'
+        SESSION_EXPIRES = False
+        SESSION_DATA_DIR = 'another_folder'
+
+    session_ext = session.Session()
+
+    def create_app(config_class=Config):
+        app = Flask(__name__)
+        app.config.from_object(config_class)
+        session_ext.init_app(app)
+        return app
+
+    _app = create_app()
+
+    assert isinstance(_app.wsgi_app, SessionMiddleware)
+    assert isinstance(_app.session_interface, beaker_session.BeakerSessionInterface)
+
+    session_options = _app.wsgi_app.options
+    assert session_options['type'] == Config.SESSION_TYPE
+    assert session_options['cookie_expires'] == Config.SESSION_EXPIRES
+    assert session_options['data_dir'] == Config.SESSION_DATA_DIR
+
+
