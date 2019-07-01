@@ -1,4 +1,5 @@
 import pytest
+import time
 
 from os import path
 from flask import Flask, session, jsonify
@@ -71,7 +72,7 @@ def test_factory_class_config_patterns():
 
 
 def test_filesystem_session(data_dir):
-    '''Test Filesystem-stored sessions as follows;
+    '''Test Filesystem-stored sessions as follows:
 
     1) When a session variable is persisted => a file is created and cookie is stuck in the headers
     2) Popping an individual variable from session dict will remove it from the session
@@ -133,3 +134,40 @@ def test_filesystem_session(data_dir):
     # (3)
     response = test_app.get('/delete_all')
     assert 'NOT' not in response.get_data(as_text=True)
+
+
+def test_test_filesystem_session_with_expired_time_in_seconds(data_dir):
+    '''Test Filesystem-stored sessions with an expiry date set in seconds
+    '''
+
+    class Config:
+        SESSION_DATA_DIR = data_dir
+        SESSION_TIMEOUT = 3
+
+    app = Flask(__name__)
+    app.config.from_object(Config)
+    beaker_session.Session(app=app)
+
+    var_1 = 'var_1'
+
+    @app.route('/create')
+    def create_session():
+        session[var_1] = var_1
+        session['var_2'] = 'var_2'
+        return session[var_1]
+
+    @app.route('/read')
+    def read_session():
+        return jsonify(var_1 in session)
+
+    # create session
+    test_app = app.test_client()
+    response = test_app.get('/create')
+    assert response.status_code == 200
+    assert var_1 in response.get_data(as_text=True)
+
+    # Wait twice as much as the session longevity
+    time.sleep(Config.SESSION_TIMEOUT * 2)
+    response = test_app.get('/read')
+    assert response.status_code == 200
+    assert not response.get_json()
