@@ -15,9 +15,9 @@ in-memory, database and other types of session storage.
 Install and Run
 ===============
 Flask-Beaker-Session is not available on PyPI yet, so you need to install it with pip providing a GitHub path as
-follows:
+follows::
 
-$ pip install git+https://github.com:d2gex/flask-beaker-session.git@0.1.0#egg=flask-beaker-session
+    $ pip install git+https://github.com:d2gex/flask-beaker-session.git@0.1.0#egg=flask-beaker-session
 
 
 
