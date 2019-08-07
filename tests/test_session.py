@@ -171,3 +171,57 @@ def test_test_filesystem_session_with_expired_time_in_seconds(data_dir):
     response = test_app.get('/read')
     assert response.status_code == 200
     assert not response.get_json()
+
+
+def test_flask_client_session_transaction_method(data_dir):
+    '''Test that the new flask extension can work with the FlaskClient.session_transaction method as follows
+
+    1) A session can be reopened with session_transaction() to check the value from a previous FlaskClient object
+    2) A session can be open with session_transaction() to modify the value for view later on to use
+    '''
+
+    class Config:
+        SESSION_DATA_DIR = data_dir
+        SESSION_TESTING = True
+
+    app = Flask(__name__)
+    app.config.from_object(Config)
+    beaker_session.Session(app=app)
+
+    var_1 = 'var_1'
+    var_2 = 'var_2'
+    var_3 = 'var_3'
+
+    @app.route('/create')
+    def create_session():
+        session[var_1] = var_1
+        session[var_2] = var_2
+        session[var_3] = var_3
+        return jsonify(session['_creation_time'], session['_accessed_time'])
+
+    @app.route('/read')
+    def read_session():
+        return jsonify({'data': session['var_4'],
+                        'creation_time': session['_creation_time'],
+                        'accessed_time': session['_accessed_time']})
+
+    # 1)
+    test_app = app.test_client()
+    response = test_app.get('/create')
+    with test_app.session_transaction() as b_session:
+        assert var_1 in b_session
+        data = response.get_json()
+        assert data[0] == b_session['_creation_time']
+        assert data[-1] <= b_session['_accessed_time']
+
+    # 2)
+    with test_app.session_transaction() as b_session:
+        b_session['var_4'] = 'var_4'
+        creation_time = b_session['_creation_time']
+        accessed_time = b_session['_accessed_time']
+
+    response = test_app.get('/read')
+    data = response.get_json()
+    assert data['data'] == 'var_4'
+    assert data['creation_time'] == creation_time
+    assert accessed_time <= data['accessed_time']
