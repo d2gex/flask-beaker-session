@@ -13,9 +13,6 @@ class SessionMiddleware(middleware.SessionMiddleware):
         :return: session object
         '''
         session = SessionObject(environ, **self.options)
-        if environ.get('paste.registry'):
-            if environ['paste.registry'].reglist:
-                environ['paste.registry'].register(self.session, session)
         environ[self.environ_key] = session
         environ['beaker.get_session'] = self._get_session
         return Session({}, use_cookies=True, **self.options)

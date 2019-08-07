@@ -1,4 +1,5 @@
 from flask.sessions import SessionInterface
+from flask_beaker_session import errors
 
 
 class BeakerSessionInterface(SessionInterface):
@@ -18,12 +19,12 @@ class BeakerSessionInterface(SessionInterface):
         :param request: request context
         :return: session object as expected by Beaker Session
         '''
-        # print(request.environ)
         try:
             session_data = request.environ['beaker.session']
-        except KeyError:
+        except KeyError as ex:
             if not self.is_testing:
-                raise
+                raise errors.ConfigurationError("To use the 'session_transaction() or test_request_method()' the "
+                                                "'SESSION_TESTING=True' option is needed") from ex
             # Restore the session object if we are testing session variables
             session_data = app.wsgi_app.restore_session(request.environ)
         return session_data

@@ -177,7 +177,8 @@ def test_flask_client_session_transaction_method(data_dir):
     '''Test that the new flask extension can work with the FlaskClient.session_transaction method as follows
 
     1) A session can be reopened with session_transaction() to check the value from a previous FlaskClient object
-    2) A session can be open with session_transaction() to modify the value for view later on to use
+    2) A session can be opened with session_transaction() to modify the value for view later on to use
+    3) If no SESSION_TESTING option is provided => an exception is raised when using session_transaction() method
     '''
 
     class Config:
@@ -225,3 +226,20 @@ def test_flask_client_session_transaction_method(data_dir):
     assert data['data'] == 'var_4'
     assert data['creation_time'] == creation_time
     assert accessed_time <= data['accessed_time']
+
+    # 3)
+    class Config:
+        SESSION_DATA_DIR = data_dir
+
+    app = Flask(__name__)
+    app.config.from_object(Config)
+    beaker_session.Session(app=app)
+
+    test_app = app.test_client()
+    with pytest.raises(errors.ConfigurationError):
+        with test_app.session_transaction():
+            pass
+
+    with pytest.raises(errors.ConfigurationError):
+        with app.test_request_context():
+            pass
