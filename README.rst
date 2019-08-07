@@ -68,6 +68,46 @@ follows::
     def delete_all_session():
         session.delete()
 
+Configuration Options
+=====================
+You can change some options for how this extension works via::
+
+    app.config[OPTION_NAME] = new_options
+
+The following options are available:
+
+1.  SESSION_TYPE: At present only ``file`` option is supported as session are stored in the the filesystem
+2.  SESSION_EXPIRES: ``True`` or ``False`` option for the session to expire or not, respectively. By default they expire
+3.  SESSION_TIMEOUT: ``<integer>`` if SESSION_EXPIRES is set, this option says when the session expired if not accessed
+    again. By default after 30 minutes expires - ``1800``
+4.  SESSION_DATA_DIR : ``path_to_folder`` where the extension will store the session files created. By default they are
+    stored in ``./.sessions``
+5.  SESSION_TESTING: ``True`` or ``False`` option for the extension to be able to work with the session_transaction()
+    method of the FlaskClient object.
+
+Advance Testing
+===============
+FlaskClient object resulting from `app.test_client()` can be called with `session_transaction()` method to either check
+previous session values modified by your views or vice versa, to modify the session object by adding, deleting or
+updating any stored value previous to your view running. All that you need to do is::
+
+    SESSION_TESTING = True
+
+And then you can call `session_transaction()` as you would do with Flask's sessions by default as shown below:
+
+.. code-block:: python
+
+    @app.route('/read')
+    def read_session():
+        return session['var_4']
+
+    test_app = app.test_client()
+    with test_app.session_transaction() as b_session:
+        b_session['var_4'] = 'var_4'
+
+    response = test_app.get('/read')
+    data = response.get_json()
+    assert data['data'] == 'var_4'
 
 .. _PyPI: http://pypi.python.org/
 
