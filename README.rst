@@ -2,6 +2,12 @@
 ``Flask-Beaker-Session``: A server-side session management extension for Flask
 ===============================================================================
 
+.. image:: https://travis-ci.com/d2gex/flask-beaker-session.svg?branch=master
+    :target: https://travis-ci.com/d2gex/flask-beaker-session
+
+.. image:: https://img.shields.io/badge/coverage-100%25-brightgreen.svg
+    :target: #
+
 A simple Flask extension to handle server-side sessions. Flask's default session would use client-based cookies and
 a sign them. However it is Base64url-encode meaning that no sensitive data can be stored in sessions.
 
@@ -17,7 +23,7 @@ Install and Run
 Flask-Beaker-Session is not available on PyPI yet, so you need to install it with pip providing a GitHub path as
 follows::
 
-    $ pip install git+https://github.com/d2gex/flask-beaker-session.git@0.1.0#egg=flask_beaker_session
+    $ pip install git+https://github.com/d2gex/flask-beaker-session.git@0.1.1#egg=flask_beaker_session
 
 
 
@@ -76,24 +82,27 @@ You can change some options for how this extension works via::
 
 The following options are available:
 
-1.  SESSION_TYPE: At present only ``file`` option is supported as session are stored in the the filesystem
-2.  SESSION_EXPIRES: ``True`` or ``False`` option for the session to expire or not, respectively. By default they expire
-3.  SESSION_TIMEOUT: ``<integer>`` if SESSION_EXPIRES is set, this option says when the session expired if not accessed
+1.  **SESSION_TYPE**: At present only ``file`` option is supported as session are stored in the the filesystem
+2.  **SESSION_EXPIRES**: ``True`` or ``False`` option for the session to expire or not, respectively. By default they expire
+3.  **SESSION_TIMEOUT**: ``<integer>`` if SESSION_EXPIRES is set, this option says when the session expired if not accessed
     again. By default after 30 minutes expires - ``1800``
-4.  SESSION_DATA_DIR : ``path_to_folder`` where the extension will store the session files created. By default they are
+4.  **SESSION_DATA_DIR**: ``path_to_folder`` where the extension will store the session files created. By default they are
     stored in ``./.sessions``
-5.  SESSION_TESTING: ``True`` or ``False`` option for the extension to be able to work with the session_transaction()
+5.  **SESSION_TESTING**: ``True`` or ``False`` option for the extension to be able to work with the session_transaction()
     method of the FlaskClient object.
 
-Advance Testing
-===============
+Advanced Testing
+================
 FlaskClient object resulting from `app.test_client()` can be called with `session_transaction()` method to either check
 previous session values modified by your views or vice versa, to modify the session object by adding, deleting or
-updating any stored value previous to your view running. All that you need to do is::
+updating any stored value previous to your view running.
 
-    SESSION_TESTING = True
+Similarly you can push manually a request context with `app.text_request_context()` to check certain parameter of your
+WSGI request object. When any of these two methods are wanted the extension need to be initialised with the option
+`SESSION_TESTING = True`.
 
-And then you can call `session_transaction()` as you would do with Flask's sessions by default as shown below:
+And then you can call `session_transaction()`, for example, as you would do with Flask's sessions by default as
+shown below:
 
 .. code-block:: python
 
